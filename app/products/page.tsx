@@ -1,121 +1,282 @@
+"use client";
 
-'use client';
-
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
-import Link from 'next/link';
-import { useState } from 'react';
-import { useCartStore } from '../../lib/cartStore';
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Footer from "../../components/Footer";
+import Header from "../../components/Header";
+import { useCartStore } from "../../lib/cartStore";
 
 export default function Products() {
-  const [selectedCategory, setSelectedCategory] = useState('Tous');
-  const [sortBy, setSortBy] = useState('Popularité');
+  const router = useRouter();
+  const [selectedCategory, setSelectedCategory] = useState("Tous");
+  const [sortBy, setSortBy] = useState("Popularité");
   const [cartItems, setCartItems] = useState<number[]>([]);
   const [showNotification, setShowNotification] = useState(false);
-  const [addedProductName, setAddedProductName] = useState('');
-  const addItem = useCartStore(state => state.addItem);
+  const [addedProductName, setAddedProductName] = useState("");
+  const [likedProductIds, setLikedProductIds] = useState<number[]>([]);
+  const [likeBurstIds, setLikeBurstIds] = useState<number[]>([]);
+  const [productViews, setProductViews] = useState<Record<number, number>>({});
+  const viewedIdsRef = useRef<Set<number>>(new Set());
+  const addItem = useCartStore((state) => state.addItem);
+  const searchParams = useSearchParams();
+  const searchQuery = (searchParams.get("search") || "").trim().toLowerCase();
 
-  const categories = ['Tous', 'Mode', 'Technologie', 'Maison', 'Sport'];
-  const sortOptions = ['Popularité', 'Prix croissant', 'Prix décroissant', 'Nouveautés'];
+  const categories = ["Tous", "Mode", "Technologie", "Maison", "Sport"];
+  const sortOptions = [
+    "Popularité",
+    "Prix croissant",
+    "Prix décroissant",
+    "Nouveautés",
+  ];
 
   const products = [
     {
       id: 1,
       name: "Montre Élégante Premium",
-      price: 299.99,
+      price: 299990,
       originalPrice: 399.99,
       category: "Mode",
-      image: "https://readdy.ai/api/search-image?query=luxury%20elegant%20watch%20with%20leather%20strap%20on%20pure%20white%20background%2C%20premium%20timepiece%20with%20sophisticated%20details%2C%20professional%20product%20photography%2C%20minimalist%20aesthetic%20with%20soft%20lighting&width=400&height=400&seq=watch2&orientation=squarish",
+      image:
+        "https://readdy.ai/api/search-image?query=luxury%20elegant%20watch%20with%20leather%20strap%20on%20pure%20white%20background%2C%20premium%20timepiece%20with%20sophisticated%20details%2C%20professional%20product%20photography%2C%20minimalist%20aesthetic%20with%20soft%20lighting&width=400&height=400&seq=watch2&orientation=squarish",
       rating: 4.8,
-      reviews: 124
+      reviews: 124,
     },
     {
       id: 2,
       name: "Sac à Main Cuir Premium",
-      price: 199.99,
+      price: 199990,
       originalPrice: 249.99,
       category: "Mode",
-      image: "https://readdy.ai/api/search-image?query=premium%20leather%20handbag%20on%20clean%20white%20background%2C%20luxury%20fashion%20accessory%20with%20golden%20hardware%2C%20elegant%20design%2C%20professional%20product%20photography%20style&width=400&height=400&seq=bag2&orientation=squarish",
+      image:
+        "https://readdy.ai/api/search-image?query=premium%20leather%20handbag%20on%20clean%20white%20background%2C%20luxury%20fashion%20accessory%20with%20golden%20hardware%2C%20elegant%20design%2C%20professional%20product%20photography%20style&width=400&height=400&seq=bag2&orientation=squarish",
       rating: 4.9,
-      reviews: 89
+      reviews: 89,
     },
     {
       id: 3,
       name: "Baskets Sport Innovation",
-      price: 149.99,
+      price: 149990,
       originalPrice: 199.99,
       category: "Sport",
-      image: "https://readdy.ai/api/search-image?query=modern%20athletic%20sneakers%20on%20white%20background%2C%20innovative%20sporty%20design%20with%20premium%20materials%2C%20contemporary%20running%20shoes%2C%20clean%20product%20photography&width=400&height=400&seq=shoes2&orientation=squarish",
+      image:
+        "https://readdy.ai/api/search-image?query=modern%20athletic%20sneakers%20on%20white%20background%2C%20innovative%20sporty%20design%20with%20premium%20materials%2C%20contemporary%20running%20shoes%2C%20clean%20product%20photography&width=400&height=400&seq=shoes2&orientation=squarish",
       rating: 4.7,
-      reviews: 156
+      reviews: 156,
     },
     {
       id: 4,
       name: "Casque Audio Wireless Pro",
-      price: 249.99,
+      price: 249990,
       originalPrice: 299.99,
       category: "Technologie",
-      image: "https://readdy.ai/api/search-image?query=professional%20wireless%20headphones%20on%20white%20background%2C%20premium%20audio%20equipment%20with%20sleek%20black%20design%2C%20modern%20tech%20product%20photography%2C%20minimalist%20style&width=400&height=400&seq=headphones2&orientation=squarish",
+      image:
+        "https://readdy.ai/api/search-image?query=professional%20wireless%20headphones%20on%20white%20background%2C%20premium%20audio%20equipment%20with%20sleek%20black%20design%2C%20modern%20tech%20product%20photography%2C%20minimalist%20style&width=400&height=400&seq=headphones2&orientation=squarish",
       rating: 4.8,
-      reviews: 203
+      reviews: 203,
     },
     {
       id: 5,
       name: "Smartphone Dernière Génération",
-      price: 699.99,
+      price: 699990,
       originalPrice: 799.99,
       category: "Technologie",
-      image: "https://readdy.ai/api/search-image?query=latest%20generation%20smartphone%20on%20pure%20white%20background%2C%20sleek%20modern%20mobile%20device%2C%20premium%20technology%20product%2C%20professional%20clean%20photography%20style&width=400&height=400&seq=phone1&orientation=squarish",
+      image:
+        "https://readdy.ai/api/search-image?query=latest%20generation%20smartphone%20on%20pure%20white%20background%2C%20sleek%20modern%20mobile%20device%2C%20premium%20technology%20product%2C%20professional%20clean%20photography%20style&width=400&height=400&seq=phone1&orientation=squarish",
       rating: 4.9,
-      reviews: 312
+      reviews: 312,
     },
     {
       id: 6,
       name: "Veste Élégante Automne",
-      price: 179.99,
+      price: 179990,
       originalPrice: 229.99,
       category: "Mode",
-      image: "https://readdy.ai/api/search-image?query=elegant%20autumn%20jacket%20on%20white%20background%2C%20stylish%20outerwear%20garment%2C%20premium%20fashion%20clothing%2C%20sophisticated%20design%20with%20clean%20product%20photography&width=400&height=400&seq=jacket1&orientation=squarish",
+      image:
+        "https://readdy.ai/api/search-image?query=elegant%20autumn%20jacket%20on%20white%20background%2C%20stylish%20outerwear%20garment%2C%20premium%20fashion%20clothing%2C%20sophisticated%20design%20with%20clean%20product%20photography&width=400&height=400&seq=jacket1&orientation=squarish",
       rating: 4.6,
-      reviews: 78
+      reviews: 78,
     },
     {
       id: 7,
       name: "Lampe Design Moderne",
-      price: 89.99,
+      price: 89990,
       originalPrice: 119.99,
       category: "Maison",
-      image: "https://readdy.ai/api/search-image?query=modern%20design%20lamp%20on%20white%20background%2C%20contemporary%20home%20lighting%20fixture%2C%20minimalist%20interior%20decoration%2C%20elegant%20household%20accessory%20with%20clean%20aesthetics&width=400&height=400&seq=lamp1&orientation=squarish",
+      image:
+        "https://readdy.ai/api/search-image?query=modern%20design%20lamp%20on%20white%20background%2C%20contemporary%20home%20lighting%20fixture%2C%20minimalist%20interior%20decoration%2C%20elegant%20household%20accessory%20with%20clean%20aesthetics&width=400&height=400&seq=lamp1&orientation=squarish",
       rating: 4.5,
-      reviews: 92
+      reviews: 92,
     },
     {
       id: 8,
       name: "Tapis de Yoga Premium",
-      price: 59.99,
+      price: 59990,
       originalPrice: 79.99,
       category: "Sport",
-      image: "https://readdy.ai/api/search-image?query=premium%20yoga%20mat%20on%20white%20background%2C%20high%20quality%20exercise%20equipment%2C%20modern%20fitness%20accessory%2C%20clean%20sports%20product%20photography%20with%20minimalist%20style&width=400&height=400&seq=yoga1&orientation=squarish",
+      image:
+        "https://readdy.ai/api/search-image?query=premium%20yoga%20mat%20on%20white%20background%2C%20high%20quality%20exercise%20equipment%2C%20modern%20fitness%20accessory%2C%20clean%20sports%20product%20photography%20with%20minimalist%20style&width=400&height=400&seq=yoga1&orientation=squarish",
       rating: 4.7,
-      reviews: 145
-    }
+      reviews: 145,
+    },
+    {
+      id: 9,
+      name: "Ordinateur Portable Ultrabook",
+      price: 899990,
+      originalPrice: 999.99,
+      category: "Technologie",
+      image:
+        "https://readdy.ai/api/search-image?query=premium%20ultrabook%20laptop%20on%20white%20background%2C%20sleek%20aluminum%20design%2C%20modern%20technology%20product%20photography&width=400&height=400&seq=laptop1&orientation=squarish",
+      rating: 4.8,
+      reviews: 210,
+    },
+    {
+      id: 10,
+      name: "Parfum Haut de Gamme",
+      price: 129990,
+      originalPrice: 159.99,
+      category: "Mode",
+      image:
+        "https://readdy.ai/api/search-image?query=luxury%20perfume%20bottle%20on%20white%20background%2C%20premium%20fragrance%20product%20photography&width=400&height=400&seq=perfume1&orientation=squarish",
+      rating: 4.6,
+      reviews: 98,
+    },
+    {
+      id: 11,
+      name: "Tablette Graphique Pro",
+      price: 349990,
+      originalPrice: 399.99,
+      category: "Technologie",
+      image:
+        "https://readdy.ai/api/search-image?query=professional%20graphics%20tablet%20on%20white%20background%2C%20digital%20artist%20equipment%2C%20premium%20product%20photography&width=400&height=400&seq=tablet1&orientation=squarish",
+      rating: 4.7,
+      reviews: 134,
+    },
+    {
+      id: 12,
+      name: "Chaise de Bureau Ergonomique",
+      price: 259990,
+      originalPrice: 299.99,
+      category: "Maison",
+      image:
+        "https://readdy.ai/api/search-image?query=premium%20ergonomic%20office%20chair%20on%20white%20background%2C%20modern%20home%20office%20furniture%20product%20photography&width=400&height=400&seq=chair1&orientation=squarish",
+      rating: 4.5,
+      reviews: 76,
+    },
   ];
 
-  const filteredProducts = selectedCategory === 'Tous' 
-    ? products 
-    : products.filter(product => product.category === selectedCategory);
+  const filteredProducts = useMemo(() => {
+    let list = products;
+    if (selectedCategory !== "Tous") {
+      list = list.filter((product) => product.category === selectedCategory);
+    }
+    if (searchQuery.length > 0) {
+      list = list.filter((product) =>
+        `${product.name} ${product.category}`
+          .toLowerCase()
+          .includes(searchQuery)
+      );
+    }
+    return list;
+  }, [products, selectedCategory, searchQuery]);
 
-  const addToCart = (product: { id: number; name: string; price: number; image: string }) => {
+  const addToCart = (product: {
+    id: number;
+    name: string;
+    price: number;
+    image: string;
+  }) => {
     addItem(product);
     setAddedProductName(product.name);
     setShowNotification(true);
     setTimeout(() => setShowNotification(false), 3000);
   };
 
+  const toggleLike = (productId: number) => {
+    setLikedProductIds((prev) =>
+      prev.includes(productId)
+        ? prev.filter((id) => id !== productId)
+        : [...prev, productId]
+    );
+    // Trigger a short burst animation
+    setLikeBurstIds((prev) => [...prev, productId]);
+    setTimeout(() => {
+      setLikeBurstIds((prev) => prev.filter((id) => id !== productId));
+    }, 300);
+  };
+
+  const incrementViews = (productId: number) => {
+    setProductViews((prev) => ({
+      ...prev,
+      [productId]: (prev[productId] || 0) + 1,
+    }));
+  };
+
+  // Compter automatiquement une vue quand la carte est visible
+  useEffect(() => {
+    const cards = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-product-card="true"]')
+    );
+    if (cards.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const el = entry.target as HTMLElement;
+            const idAttr = el.getAttribute("data-product-id");
+            const productId = idAttr ? parseInt(idAttr, 10) : NaN;
+            if (
+              !Number.isNaN(productId) &&
+              !viewedIdsRef.current.has(productId)
+            ) {
+              viewedIdsRef.current.add(productId);
+              incrementViews(productId);
+            }
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    cards.forEach((c) => observer.observe(c));
+    return () => observer.disconnect();
+  }, [filteredProducts]);
+
+  // Persisted state for likes and views
+  useEffect(() => {
+    try {
+      const rawLikes = localStorage.getItem("likedProductIds");
+      if (rawLikes) {
+        const parsed = JSON.parse(rawLikes);
+        if (Array.isArray(parsed)) setLikedProductIds(parsed as number[]);
+      }
+    } catch {}
+    try {
+      const rawViews = localStorage.getItem("productViews");
+      if (rawViews) {
+        const parsed = JSON.parse(rawViews);
+        if (parsed && typeof parsed === "object")
+          setProductViews(parsed as Record<number, number>);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("likedProductIds", JSON.stringify(likedProductIds));
+    } catch {}
+  }, [likedProductIds]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("productViews", JSON.stringify(productViews));
+    } catch {}
+  }, [productViews]);
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      
+
       {/* Notification */}
       {showNotification && (
         <div className="fixed top-24 right-6 z-50 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-4 rounded-xl shadow-2xl animate-slide-in-right">
@@ -123,21 +284,28 @@ export default function Products() {
             <div className="w-5 h-5 flex items-center justify-center">
               <i className="ri-check-line text-xl font-bold"></i>
             </div>
-            <span className="font-semibold">{addedProductName} ajouté au panier !</span>
+            <span className="font-semibold">
+              {addedProductName} ajouté au panier !
+            </span>
           </div>
         </div>
       )}
-      
+
       {/* Header */}
-      <section className="py-16 px-4 bg-gray-50">
+      <section className="py-20 px-4 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">Nos Produits</h1>
-          <p className="text-xl text-gray-600">Découvrez notre collection complète de produits premium</p>
+          <h1 className="text-5xl font-bold text-gray-900 mb-4">
+            Nos Produits
+          </h1>
+          <div className="w-32 h-1 bg-gradient-to-r from-green-400 to-green-600 mb-6"></div>
+          <p className="text-xl text-gray-600">
+            Découvrez notre collection complète de produits premium
+          </p>
         </div>
       </section>
 
       {/* Filters */}
-      <section className="py-8 px-4 border-b border-gray-200">
+      <section className="py-12 px-4 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             {/* Categories */}
@@ -148,15 +316,15 @@ export default function Products() {
                   onClick={() => setSelectedCategory(category)}
                   className={`px-6 py-2 rounded-full transition-colors whitespace-nowrap cursor-pointer ${
                     selectedCategory === category
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? "bg-gradient-to-r from-green-400 to-green-600 text-white shadow"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200"
                   }`}
                 >
                   {category}
                 </button>
               ))}
             </div>
-            
+
             {/* Sort */}
             <div className="flex items-center gap-4">
               <span className="text-gray-600">Trier par:</span>
@@ -174,50 +342,138 @@ export default function Products() {
       </section>
 
       {/* Products Grid */}
-      <section className="py-16 px-4">
+      <section className="py-20 px-4 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {filteredProducts.map((product) => (
-              <div key={product.id} className="bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-lg transition-shadow cursor-pointer group">
+              <div
+                key={product.id}
+                className="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-2xl hover:shadow-green-500/10 transition-shadow cursor-pointer group relative overflow-hidden"
+                data-product-card="true"
+                data-product-id={product.id}
+              >
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-green-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+                {/* Like button */}
+                <button
+                  type="button"
+                  aria-label="Liker le produit"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleLike(product.id);
+                  }}
+                  className={`absolute top-4 right-4 w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm hover:shadow transition-transform z-10 ${
+                    likeBurstIds.includes(product.id)
+                      ? "scale-110"
+                      : "scale-100"
+                  }`}
+                  aria-pressed={likedProductIds.includes(product.id)}
+                  title="J'aime"
+                >
+                  <i
+                    className={`ri-heart-${
+                      likedProductIds.includes(product.id) ? "fill" : "line"
+                    } text-2xl ${
+                      likedProductIds.includes(product.id)
+                        ? "text-green-500"
+                        : "text-gray-600 hover:text-green-500"
+                    }`}
+                  ></i>
+                  {likeBurstIds.includes(product.id) && (
+                    <span className="pointer-events-none absolute inline-flex h-10 w-10 rounded-full bg-green-400/20 animate-ping"></span>
+                  )}
+                </button>
+                {/* Views button */}
+                <button
+                  type="button"
+                  aria-label="Nombre de vues"
+                  className="absolute top-4 left-4 px-3 h-10 rounded-full bg-white border border-gray-200 flex items-center gap-2 shadow-sm hover:shadow transition-all text-gray-700"
+                  title="Vues du produit"
+                >
+                  <i className="ri-eye-line text-lg"></i>
+                  <span className="text-sm font-medium">
+                    {(productViews[product.id] || 0).toLocaleString()}
+                  </span>
+                </button>
                 <div className="aspect-square mb-4 overflow-hidden rounded-xl bg-gray-50">
-                  <img 
-                    src={product.image} 
+                  <img
+                    src={product.image}
                     alt={product.name}
                     className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
                   />
                 </div>
-                
-                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{product.name}</h3>
-                
+
+                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+                  {product.name}
+                </h3>
+
                 <div className="flex items-center mb-2">
                   <div className="flex items-center">
                     {[...Array(5)].map((_, i) => (
-                      <div key={i} className="w-4 h-4 flex items-center justify-center">
-                        <i className={`ri-star-${i < Math.floor(product.rating) ? 'fill' : 'line'} text-yellow-400 text-sm`}></i>
+                      <div
+                        key={i}
+                        className="w-4 h-4 flex items-center justify-center"
+                      >
+                        <i
+                          className={`ri-star-${
+                            i < Math.floor(product.rating) ? "fill" : "line"
+                          } text-green-400 text-sm`}
+                        ></i>
                       </div>
                     ))}
                   </div>
-                  <span className="text-sm text-gray-500 ml-2">({product.reviews})</span>
+                  <span className="text-sm text-gray-500 ml-2">
+                    ({product.reviews})
+                  </span>
                 </div>
-                
+
                 <div className="flex items-center space-x-2 mb-4">
-                  <span className="text-2xl font-bold text-gray-900">{product.price}€</span>
+                  <span className="text-2xl font-bold text-gray-900">
+                    {product.price.toLocaleString()} F CFA
+                  </span>
                   {product.originalPrice && (
-                    <span className="text-lg text-gray-400 line-through">{product.originalPrice}€</span>
+                    <span className="text-lg text-gray-400 line-through">
+                      {Number(product.originalPrice * 1000).toLocaleString()} F
+                      CFA
+                    </span>
                   )}
                 </div>
-                
-                <button 
-                  onClick={() => addToCart({
-                    id: product.id,
-                    name: product.name,
-                    price: product.price,
-                    image: product.image
-                  })}
-                  className="w-full bg-gray-900 text-white py-3 rounded-xl hover:bg-gray-800 transition-colors whitespace-nowrap cursor-pointer"
-                >
-                  Ajouter au Panier
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  onClick={() =>
+                    addToCart({
+                      id: product.id,
+                      name: product.name,
+                      price: product.price,
+                      image: product.image,
+                    })
+                  }
+                    className="w-full bg-white text-gray-900 border border-gray-300 py-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer text-sm sm:text-base px-3 truncate"
+                  >
+                    Ajouter au panier
+                  </button>
+                  <button
+                    onClick={() => {
+                      try {
+                        const payload = {
+                          id: product.id,
+                          name: product.name,
+                          price: product.price,
+                          image: product.image,
+                          quantity: 1,
+                        };
+                        sessionStorage.setItem(
+                          "buy_now_item",
+                          JSON.stringify(payload)
+                        );
+                      } catch {}
+                      router.push("/payment?buynow=1");
+                    }}
+                    className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-xl hover:from-green-600 hover:to-green-700 transition-colors cursor-pointer shadow-md text-sm sm:text-base px-3 truncate"
+                  >
+                    Acheter maintenant
                 </button>
+                </div>
               </div>
             ))}
           </div>

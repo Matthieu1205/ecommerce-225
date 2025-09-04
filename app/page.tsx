@@ -119,7 +119,7 @@ export default function Home() {
                 <div className="w-24 h-1 bg-gradient-to-r from-green-400 to-green-600 mx-auto mb-8"></div>
               </div>
               <p className="text-2xl md:text-3xl text-white mb-12 opacity-90 font-light max-w-3xl mx-auto leading-relaxed">
-                Collection exclusive de produits premium pour l'homme moderne
+                Collection exclusive de produits premium pour l homme moderne
               </p>
               <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
                 <Link
@@ -141,9 +141,9 @@ export default function Home() {
         </div>
 
         {/* Floating elements */}
-        <div className="absolute top-20 left-10 w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-3 h-3 bg-amber-500 rounded-full animate-pulse delay-300"></div>
-        <div className="absolute bottom-32 left-1/4 w-1 h-1 bg-amber-300 rounded-full animate-pulse delay-700"></div>
+        <div className="absolute top-20 left-10 w-2 h-2 from-green-400 rounded-full animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-3 h-3 from-green-400 rounded-full animate-pulse delay-300"></div>
+        <div className="absolute bottom-32 left-1/4 w-1 h-1 from-green-400 rounded-full animate-pulse delay-700"></div>
       </section>
 
       {/* Featured Products */}
@@ -159,7 +159,7 @@ export default function Home() {
             </h2>
             <div className="w-32 h-1 bg-gradient-to-r from-green-400 to-green-600 mx-auto mb-8"></div>
             <p className="text-xl text-gray-300">
-              Découvrez nos pièces d'exception
+              Découvrez nos pièces d exception
             </p>
           </div>
 

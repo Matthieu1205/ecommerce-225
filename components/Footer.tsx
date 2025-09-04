@@ -18,10 +18,10 @@ export default function Footer() {
 
       <div className="max-w-7xl mx-auto px-6 py-16 relative">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-          {/* Logo et description */}
+          {/* Logo + description */}
           <div className="space-y-6">
             <h3 className="font-['Pacifico'] text-2xl bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
-              Logo
+              Mani-shopci
             </h3>
             <p className="text-gray-400 text-base leading-relaxed">
               Votre destination premium pour l'élégance masculine et les
@@ -33,36 +33,24 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group w-10 h-10 flex items-center justify-center bg-gradient-to-r from-gray-800 to-gray-700 hover:from-green-500 hover:to-green-600 rounded-full transition-all duration-300"
-                aria-label="Facebook"
               >
-                <i
-                  className="ri-facebook-fill text-white transition-colors duration-300"
-                  aria-hidden="true"
-                ></i>
+                <i className="ri-facebook-fill text-white"></i>
               </a>
               <a
                 href="https://twitter.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group w-10 h-10 flex items-center justify-center bg-gradient-to-r from-gray-800 to-gray-700 hover:from-green-500 hover:to-green-600 rounded-full transition-all duration-300"
-                aria-label="Twitter"
               >
-                <i
-                  className="ri-twitter-fill text-white transition-colors duration-300"
-                  aria-hidden="true"
-                ></i>
+                <i className="ri-twitter-fill text-white"></i>
               </a>
               <a
                 href="https://instagram.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group w-10 h-10 flex items-center justify-center bg-gradient-to-r from-gray-800 to-gray-700 hover:from-green-500 hover:to-green-600 rounded-full transition-all duration-300"
-                aria-label="Instagram"
               >
-                <i
-                  className="ri-instagram-fill text-white transition-colors duration-300"
-                  aria-hidden="true"
-                ></i>
+                <i className="ri-instagram-fill text-white"></i>
               </a>
             </div>
           </div>
@@ -72,74 +60,66 @@ export default function Footer() {
             <h4 className="font-bold text-white text-lg">Navigation</h4>
             <ul className="space-y-3">
               <li>
-                <Link
-                  href="/"
-                  className="text-gray-400 hover:text-green-400 transition-colors duration-300"
-                >
-                  Accueil
+                <Link href="/">
+                  <span className="text-gray-400 hover:text-green-400 transition-colors">
+                    Accueil
+                  </span>
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/products"
-                  className="text-gray-400 hover:text-green-400 transition-colors duration-300"
-                >
-                  Produits
+                <Link href="/products">
+                  <span className="text-gray-400 hover:text-green-400 transition-colors">
+                    Produits
+                  </span>
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/categories"
-                  className="text-gray-400 hover:text-green-400 transition-colors duration-300"
-                >
-                  Collections
+                <Link href="/categories">
+                  <span className="text-gray-400 hover:text-green-400 transition-colors">
+                    Collections
+                  </span>
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/vip"
-                  className="text-gray-400 hover:text-green-400 transition-colors duration-300"
-                >
-                  Programme VIP
+                <Link href="/vip">
+                  <span className="text-gray-400 hover:text-green-400 transition-colors">
+                    Programme VIP
+                  </span>
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Service Premium */}
+          {/* Services Premium */}
           <div className="space-y-6">
             <h4 className="font-bold text-white text-lg">Service Premium</h4>
             <ul className="space-y-3">
               <li>
-                <Link
-                  href="/concierge"
-                  className="text-gray-400 hover:text-green-400 transition-colors duration-300"
-                >
-                  Service Conciergerie
+                <Link href="/concierge">
+                  <span className="text-gray-400 hover:text-green-400 transition-colors">
+                    Service Conciergerie
+                  </span>
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/personal-shopper"
-                  className="text-gray-400 hover:text-green-400 transition-colors duration-300"
-                >
-                  Personal Shopper
+                <Link href="/personal-shopper">
+                  <span className="text-gray-400 hover:text-green-400 transition-colors">
+                    Personal Shopper
+                  </span>
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/luxury-delivery"
-                  className="text-gray-400 hover:text-green-400 transition-colors duration-300"
-                >
-                  Livraison Premium
+                <Link href="/luxury-delivery">
+                  <span className="text-gray-400 hover:text-green-400 transition-colors">
+                    Livraison Premium
+                  </span>
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/warranty"
-                  className="text-gray-400 hover:text-green-400 transition-colors duration-300"
-                >
-                  Garantie Exclusive
+                <Link href="/warranty">
+                  <span className="text-gray-400 hover:text-green-400 transition-colors">
+                    Garantie Exclusive
+                  </span>
                 </Link>
               </li>
             </ul>
@@ -148,31 +128,21 @@ export default function Footer() {
           {/* Contact VIP */}
           <div className="space-y-6">
             <h4 className="font-bold text-white text-lg">Contact VIP</h4>
-            <div className="space-y-4 text-gray-400">
-              <div className="flex items-center space-x-3">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3 text-gray-400">
                 <i className="ri-phone-fill text-green-400"></i>
-                <a
-                  href="tel:+225220005550"
-                  className="hover:text-green-400 transition-colors"
-                >
-                  +225 22 20 00 55 50
-                </a>
+                <span>+225 22 20 00 55 50</span>
               </div>
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 text-gray-400">
                 <i className="ri-mail-fill text-green-400"></i>
-                <a
-                  href="mailto:vip@logo.com"
-                  className="hover:text-green-400 transition-colors"
-                >
-                  vip@logo.com
-                </a>
+                <span>manishopci@gmail.com</span>
               </div>
-              <div className="flex items-start space-x-3">
+              <div className="flex items-start space-x-3 text-gray-400">
                 <i className="ri-map-pin-fill text-green-400 mt-0.5"></i>
                 <span>
-                  123 Boulvard-latrille, Abidjan, Côte d'Ivoire.
+                  123 Boulvard-latrille, Abidjan, Côte d Ivoire.
                   <br />
-                  75008 Abidjan, Côte d'Ivoire
+                  75008 Abidjan, Côte d Ivoire
                 </span>
               </div>
             </div>
@@ -185,23 +155,20 @@ export default function Footer() {
             © 2024 logo. Collection Premium - Tous droits réservés.
           </p>
           <div className="flex space-x-6 text-sm">
-            <Link
-              href="/privacy"
-              className="text-gray-500 hover:text-green-400 transition-colors"
-            >
-              Confidentialité
+            <Link href="/privacy">
+              <span className="text-gray-500 hover:text-green-400 transition-colors cursor-pointer">
+                Confidentialité
+              </span>
             </Link>
-            <Link
-              href="/terms"
-              className="text-gray-500 hover:text-green-400 transition-colors"
-            >
-              CGV
+            <Link href="/terms">
+              <span className="text-gray-500 hover:text-green-400 transition-colors cursor-pointer">
+                CGV
+              </span>
             </Link>
-            <Link
-              href="/cookies"
-              className="text-gray-500 hover:text-green-400 transition-colors"
-            >
-              Cookies
+            <Link href="/cookies">
+              <span className="text-gray-500 hover:text-green-400 transition-colors cursor-pointer">
+                Cookies
+              </span>
             </Link>
           </div>
         </div>

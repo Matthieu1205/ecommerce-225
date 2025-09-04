@@ -9,7 +9,7 @@ export default function Cart() {
   const { items: cartItems, updateQuantity, getTotalPrice } = useCartStore();
 
   const subtotal = getTotalPrice();
-  const shipping = cartItems.length > 0 ? 9.99 : 0;
+  const shipping = cartItems.length > 0 ? 1990 : 0; // 1 990 F CFA
   const total = subtotal + shipping;
 
   return (
@@ -60,7 +60,7 @@ export default function Cart() {
                         {item.name}
                       </h3>
                       <p className="text-2xl font-bold text-gray-900">
-                        {item.price}€
+                        {Number(item.price).toLocaleString()} F CFA
                       </p>
                     </div>
 
@@ -70,6 +70,7 @@ export default function Cart() {
                           updateQuantity(item.id, item.quantity - 1)
                         }
                         className="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full transition-colors cursor-pointer"
+                        title="Diminuer la quantité"
                       >
                         <i className="ri-subtract-line text-gray-600"></i>
                       </button>
@@ -81,6 +82,7 @@ export default function Cart() {
                           updateQuantity(item.id, item.quantity + 1)
                         }
                         className="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full transition-colors cursor-pointer"
+                        title="Augmenter la quantité"
                       >
                         <i className="ri-add-line text-gray-600"></i>
                       </button>
@@ -89,6 +91,7 @@ export default function Cart() {
                     <button
                       onClick={() => updateQuantity(item.id, 0)}
                       className="w-8 h-8 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
+                      title="Supprimer l'article"
                     >
                       <i className="ri-delete-bin-line"></i>
                     </button>
@@ -108,26 +111,29 @@ export default function Cart() {
                   <div className="flex justify-between">
                     <span className="text-gray-600">Sous-total</span>
                     <span className="font-semibold">
-                      {subtotal.toFixed(2)}€
+                      {Number(subtotal).toLocaleString()} F CFA
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Livraison</span>
                     <span className="font-semibold">
-                      {shipping.toFixed(2)}€
+                      {Number(shipping).toLocaleString()} F CFA
                     </span>
                   </div>
                   <div className="border-t border-gray-200 pt-4">
                     <div className="flex justify-between text-xl font-bold">
                       <span>Total</span>
-                      <span>{total.toFixed(2)}€</span>
+                      <span>{Number(total).toLocaleString()} F CFA</span>
                     </div>
                   </div>
                 </div>
 
-                <button className="w-full bg-gray-500 text-white py-4 rounded-xl hover:bg-gray-800 transition-colors cursor-pointer whitespace-nowrap font-semibold mb-4">
+                <Link
+                  href="/payment"
+                  className="block w-full bg-gray-900 text-white py-4 rounded-xl hover:bg-gray-800 transition-colors cursor-pointer whitespace-nowrap font-semibold mb-4 text-center"
+                >
                   Procéder au Paiement
-                </button>
+                </Link>
 
                 <Link
                   href="/products"
