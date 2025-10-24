@@ -1,22 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
 import PaymentMethodCard from "../../components/PaymentMethodCard";
 import PhoneConfirmation from "../../components/PhoneConfirmation";
 import { useCartStore } from "../../lib/cartStore";
-import { useAuthStore } from "../../lib/stores/authStore";
 import { PaymentService } from "../../lib/services/paymentService";
+import { useAuthStore } from "../../lib/stores/authStore";
 import { PaymentMethod, PaymentRequest } from "../../lib/types/payment";
 
 export default function PaymentPage() {
   const router = useRouter();
-  const { items: cartItems, getTotalPrice, clearCart } = useCartStore();
+  const { items: cartItems } = useCartStore();
   const { user, isAuthenticated } = useAuthStore();
-  const [selectedMethod, setSelectedMethod] = useState<string>("");
+  const [selectedMethod, setSelectedMethod] = useState<string>("wave");
   const [customerInfo, setCustomerInfo] = useState({
     name: "",
     email: "",
@@ -27,32 +27,69 @@ export default function PaymentPage() {
   const [error, setError] = useState("");
   const [showPhoneConfirmation, setShowPhoneConfirmation] = useState(false);
 
-  const subtotal = getTotalPrice();
-  const shipping = cartItems.length > 0 ? 9.99 : 0;
-  const total = subtotal + shipping;
+  // Buy Now support
+  const searchParams = useSearchParams();
+  const isBuyNow = searchParams.get("buynow") === "1";
+  type OrderItem = {
+    id: number;
+    name: string;
+    price: number;
+    image: string;
+    quantity: number;
+  };
+  const [buyNowItem, setBuyNowItem] = useState<OrderItem | null>(null);
 
   const paymentMethods: PaymentMethod[] = [
     {
       id: "wave",
       name: "Wave",
-      icon: "/logos/wave-logo.svg",
+      icon: "/logos/wave-logo.jpeg",
       description: "Paiement sécurisé via Wave Mobile Money",
-      enabled: true,
-    },
-    {
-      id: "orange_money",
-      name: "Orange Money",
-      icon: "/logos/orange-money-logo.svg",
-      description: "Paiement sécurisé via Orange Money",
       enabled: true,
     },
   ];
 
+  // Redirect only when NOT in Buy Now mode
   useEffect(() => {
+    if (isBuyNow) return;
     if (cartItems.length === 0) {
       router.push("/cart");
     }
-  }, [cartItems, router]);
+  }, [isBuyNow, cartItems, router]);
+
+  // Load Buy Now item from sessionStorage when in Buy Now mode
+  useEffect(() => {
+    if (!isBuyNow) return;
+    try {
+      const raw = sessionStorage.getItem("buy_now_item");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (
+          parsed &&
+          typeof parsed === "object" &&
+          parsed.id &&
+          parsed.name &&
+          parsed.price
+        ) {
+          setBuyNowItem(parsed as OrderItem);
+          return;
+        }
+      }
+    } catch {}
+    // Fallback if no valid Buy Now item is found
+    router.push("/products");
+  }, [isBuyNow, router]);
+
+  const itemsForPayment: OrderItem[] =
+    isBuyNow && buyNowItem
+      ? [buyNowItem]
+      : (cartItems as unknown as OrderItem[]);
+  const subtotal = itemsForPayment.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+  const shipping = itemsForPayment.length > 0 ? 1990 : 0; // 1 990 F CFA
+  const total = subtotal + shipping;
 
   // Pré-remplir les informations si l'utilisateur est connecté
   useEffect(() => {
@@ -77,10 +114,7 @@ export default function PaymentPage() {
   };
 
   const validateForm = () => {
-    if (!selectedMethod) {
-      setError("Veuillez sélectionner une méthode de paiement");
-      return false;
-    }
+    // Méthode par défaut: Wave
     if (!customerInfo.name.trim()) {
       setError("Veuillez saisir votre nom");
       return false;
@@ -117,7 +151,7 @@ export default function PaymentPage() {
           ...customerInfo,
           phone: paymentPhone, // Utiliser le numéro de paiement
         },
-        items: cartItems.map((item) => ({
+        items: itemsForPayment.map((item) => ({
           id: item.id,
           name: item.name,
           price: item.price,
@@ -125,14 +159,7 @@ export default function PaymentPage() {
         })),
       };
 
-      let response;
-      if (selectedMethod === "wave") {
-        response = await PaymentService.initiateWavePayment(paymentRequest);
-      } else if (selectedMethod === "orange_money") {
-        response = await PaymentService.initiateOrangeMoneyPayment(
-          paymentRequest
-        );
-      }
+      const response = await PaymentService.initiateWavePayment(paymentRequest);
 
       if (response?.success && response.paymentUrl) {
         // Rediriger vers la page de paiement externe
@@ -148,9 +175,8 @@ export default function PaymentPage() {
     }
   };
 
-  if (cartItems.length === 0) {
-    return null;
-  }
+  if (!isBuyNow && cartItems.length === 0) return null;
+  if (isBuyNow && !buyNowItem) return null;
 
   return (
     <div className="min-h-screen bg-white">
@@ -173,7 +199,7 @@ export default function PaymentPage() {
               </h2>
 
               <div className="space-y-4">
-                {cartItems.map((item) => (
+                {itemsForPayment.map((item) => (
                   <div key={item.id} className="flex items-center space-x-4">
                     <img
                       src={item.image}
@@ -188,7 +214,8 @@ export default function PaymentPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-gray-900">
-                        {(item.price * item.quantity).toFixed(2)}€
+                        {Number(item.price * item.quantity).toLocaleString()} F
+                        CFA
                       </p>
                     </div>
                   </div>
@@ -198,15 +225,19 @@ export default function PaymentPage() {
               <div className="border-t border-gray-200 pt-4 mt-6">
                 <div className="flex justify-between mb-2">
                   <span className="text-gray-600">Sous-total</span>
-                  <span className="font-semibold">{subtotal.toFixed(2)}€</span>
+                  <span className="font-semibold">
+                    {Number(subtotal).toLocaleString()} F CFA
+                  </span>
                 </div>
                 <div className="flex justify-between mb-2">
                   <span className="text-gray-600">Livraison</span>
-                  <span className="font-semibold">{shipping.toFixed(2)}€</span>
+                  <span className="font-semibold">
+                    {Number(shipping).toLocaleString()} F CFA
+                  </span>
                 </div>
                 <div className="flex justify-between text-xl font-bold border-t border-gray-200 pt-2">
                   <span>Total</span>
-                  <span>{total.toFixed(2)}€</span>
+                  <span>{Number(total).toLocaleString()} F CFA</span>
                 </div>
               </div>
             </div>
@@ -306,7 +337,7 @@ export default function PaymentPage() {
               >
                 {isProcessing
                   ? "Traitement en cours..."
-                  : `Payer ${total.toFixed(2)}€`}
+                  : `Payer ${Number(total).toLocaleString()} F CFA`}
               </button>
 
               <Link

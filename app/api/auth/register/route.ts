@@ -10,6 +10,7 @@ let users = [
     password: 'demo123',
     name: 'Utilisateur Demo',
     phone: '+225 07 12 34 56 78',
+    role: 'user',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -66,6 +67,7 @@ export async function POST(request: NextRequest) {
       password: data.password, // En production, hash le mot de passe
       name: data.name,
       phone: data.phone || '',
+      role: 'user',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -79,6 +81,7 @@ export async function POST(request: NextRequest) {
       email: newUser.email,
       name: newUser.name,
       phone: newUser.phone,
+      role: newUser.role as any,
       createdAt: newUser.createdAt,
       updatedAt: newUser.updatedAt,
     };

@@ -119,6 +119,14 @@ export default function Header() {
             </Link>
           </nav>
           <div className="flex items-center space-x-6">
+            <Link
+              href="/wishlist"
+              className="group relative p-3 text-white hover:text-green-400 transition-colors duration-300 cursor-pointer"
+            >
+              <div className="w-6 h-6 flex items-center justify-center">
+                <i className="ri-heart-line text-xl group-hover:scale-110 transition-transform duration-300"></i>
+              </div>
+            </Link>
             {/* Recherche inline */}
             <div className="flex items-center space-x-2 search-inline-container">
               <button
@@ -145,7 +153,6 @@ export default function Header() {
                       ? "w-64 opacity-100"
                       : "w-0 opacity-0 px-0 py-0 border-transparent"
                   }`}
-                  style={{ marginLeft: showSearch ? undefined : 0 }}
                 />
               </form>
             </div>
@@ -184,6 +191,16 @@ export default function Header() {
                         <i className="ri-user-line mr-2"></i>
                         Mon profil
                       </Link>
+                      {user?.role === 'admin' && (
+                        <Link
+                          href="/admin"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <i className="ri-dashboard-line mr-2"></i>
+                          Admin
+                        </Link>
+                      )}
                       <Link
                         href="/orders"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
@@ -210,6 +227,7 @@ export default function Header() {
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
                     className="group p-3 text-white hover:text-green-400 transition-colors duration-300 cursor-pointer relative"
+                    title="Compte"
                   >
                     <div className="w-6 h-6 flex items-center justify-center">
                       <i className="ri-user-line text-xl group-hover:scale-110 transition-transform duration-300"></i>
@@ -232,7 +250,7 @@ export default function Header() {
                         onClick={() => setShowUserMenu(false)}
                       >
                         <i className="ri-user-add-line mr-2"></i>
-                        S'inscrire
+                        S&#39;inscrire
                       </Link>
                     </div>
                   )}

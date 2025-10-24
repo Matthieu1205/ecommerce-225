@@ -2,25 +2,51 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { products as dataProducts, ProductItem } from "../../lib/data/products";
+import { useAdminProductsStore } from "../../lib/stores/adminProductsStore";
+import { flushSync } from "react-dom";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
 import { useCartStore } from "../../lib/cartStore";
+import { useWishlistStore } from "../../lib/stores/wishlistStore";
 
 export default function Products() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState("Tous");
   const [sortBy, setSortBy] = useState("Popularité");
-  const [cartItems, setCartItems] = useState<number[]>([]);
   const [showNotification, setShowNotification] = useState(false);
   const [addedProductName, setAddedProductName] = useState("");
-  const [likedProductIds, setLikedProductIds] = useState<number[]>([]);
   const [likeBurstIds, setLikeBurstIds] = useState<number[]>([]);
+  const [navigatingId, setNavigatingId] = useState<number | null>(null);
+  // variant selections are managed on detail page; no local selection here
   const [productViews, setProductViews] = useState<Record<number, number>>({});
   const viewedIdsRef = useRef<Set<number>>(new Set());
   const addItem = useCartStore((state) => state.addItem);
+  const { add: addWish, remove: removeWish, has: hasWish } = useWishlistStore();
   const searchParams = useSearchParams();
   const searchQuery = (searchParams.get("search") || "").trim().toLowerCase();
 
+  const { items: adminItems } = useAdminProductsStore();
+  const products: ProductItem[] = useMemo(() => {
+    const adminAsProducts: ProductItem[] = adminItems.map((p) => ({
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      category: p.category as any,
+      image: p.image,
+      rating: 5,
+      reviews: 0,
+      description: p.description,
+      brand: p.brand,
+      colors: p.colors,
+      sizes: p.sizes,
+    }));
+    // Merge static products with admin-managed ones, preferring admin version on ID conflicts
+    const byId = new Map<number, ProductItem>();
+    dataProducts.forEach((p) => byId.set(p.id, p));
+    adminAsProducts.forEach((p) => byId.set(p.id, p));
+    return Array.from(byId.values());
+  }, [adminItems]);
   const categories = ["Tous", "Mode", "Technologie", "Maison", "Sport"];
   const sortOptions = [
     "Popularité",
@@ -28,141 +54,25 @@ export default function Products() {
     "Prix décroissant",
     "Nouveautés",
   ];
+  const allBrands = useMemo(() => {
+    const set = new Set<string>();
+    products.forEach((p) => { if (p.brand) set.add(p.brand); });
+    return Array.from(set);
+  }, [products]);
+  const allColors = useMemo(() => {
+    const set = new Set<string>();
+    products.forEach((p) => (p.colors || []).forEach((c) => set.add(c)));
+    return Array.from(set);
+  }, [products]);
+  const allSizes = useMemo(() => {
+    const set = new Set<string>();
+    products.forEach((p) => (p.sizes || []).forEach((s) => set.add(s)));
+    return Array.from(set);
+  }, [products]);
 
-  const products = [
-    {
-      id: 1,
-      name: "Montre Élégante Premium",
-      price: 299990,
-      originalPrice: 399.99,
-      category: "Mode",
-      image:
-        "https://readdy.ai/api/search-image?query=luxury%20elegant%20watch%20with%20leather%20strap%20on%20pure%20white%20background%2C%20premium%20timepiece%20with%20sophisticated%20details%2C%20professional%20product%20photography%2C%20minimalist%20aesthetic%20with%20soft%20lighting&width=400&height=400&seq=watch2&orientation=squarish",
-      rating: 4.8,
-      reviews: 124,
-    },
-    {
-      id: 2,
-      name: "Sac à Main Cuir Premium",
-      price: 199990,
-      originalPrice: 249.99,
-      category: "Mode",
-      image:
-        "https://readdy.ai/api/search-image?query=premium%20leather%20handbag%20on%20clean%20white%20background%2C%20luxury%20fashion%20accessory%20with%20golden%20hardware%2C%20elegant%20design%2C%20professional%20product%20photography%20style&width=400&height=400&seq=bag2&orientation=squarish",
-      rating: 4.9,
-      reviews: 89,
-    },
-    {
-      id: 3,
-      name: "Baskets Sport Innovation",
-      price: 149990,
-      originalPrice: 199.99,
-      category: "Sport",
-      image:
-        "https://readdy.ai/api/search-image?query=modern%20athletic%20sneakers%20on%20white%20background%2C%20innovative%20sporty%20design%20with%20premium%20materials%2C%20contemporary%20running%20shoes%2C%20clean%20product%20photography&width=400&height=400&seq=shoes2&orientation=squarish",
-      rating: 4.7,
-      reviews: 156,
-    },
-    {
-      id: 4,
-      name: "Casque Audio Wireless Pro",
-      price: 249990,
-      originalPrice: 299.99,
-      category: "Technologie",
-      image:
-        "https://readdy.ai/api/search-image?query=professional%20wireless%20headphones%20on%20white%20background%2C%20premium%20audio%20equipment%20with%20sleek%20black%20design%2C%20modern%20tech%20product%20photography%2C%20minimalist%20style&width=400&height=400&seq=headphones2&orientation=squarish",
-      rating: 4.8,
-      reviews: 203,
-    },
-    {
-      id: 5,
-      name: "Smartphone Dernière Génération",
-      price: 699990,
-      originalPrice: 799.99,
-      category: "Technologie",
-      image:
-        "https://readdy.ai/api/search-image?query=latest%20generation%20smartphone%20on%20pure%20white%20background%2C%20sleek%20modern%20mobile%20device%2C%20premium%20technology%20product%2C%20professional%20clean%20photography%20style&width=400&height=400&seq=phone1&orientation=squarish",
-      rating: 4.9,
-      reviews: 312,
-    },
-    {
-      id: 6,
-      name: "Veste Élégante Automne",
-      price: 179990,
-      originalPrice: 229.99,
-      category: "Mode",
-      image:
-        "https://readdy.ai/api/search-image?query=elegant%20autumn%20jacket%20on%20white%20background%2C%20stylish%20outerwear%20garment%2C%20premium%20fashion%20clothing%2C%20sophisticated%20design%20with%20clean%20product%20photography&width=400&height=400&seq=jacket1&orientation=squarish",
-      rating: 4.6,
-      reviews: 78,
-    },
-    {
-      id: 7,
-      name: "Lampe Design Moderne",
-      price: 89990,
-      originalPrice: 119.99,
-      category: "Maison",
-      image:
-        "https://readdy.ai/api/search-image?query=modern%20design%20lamp%20on%20white%20background%2C%20contemporary%20home%20lighting%20fixture%2C%20minimalist%20interior%20decoration%2C%20elegant%20household%20accessory%20with%20clean%20aesthetics&width=400&height=400&seq=lamp1&orientation=squarish",
-      rating: 4.5,
-      reviews: 92,
-    },
-    {
-      id: 8,
-      name: "Tapis de Yoga Premium",
-      price: 59990,
-      originalPrice: 79.99,
-      category: "Sport",
-      image:
-        "https://readdy.ai/api/search-image?query=premium%20yoga%20mat%20on%20white%20background%2C%20high%20quality%20exercise%20equipment%2C%20modern%20fitness%20accessory%2C%20clean%20sports%20product%20photography%20with%20minimalist%20style&width=400&height=400&seq=yoga1&orientation=squarish",
-      rating: 4.7,
-      reviews: 145,
-    },
-    {
-      id: 9,
-      name: "Ordinateur Portable Ultrabook",
-      price: 899990,
-      originalPrice: 999.99,
-      category: "Technologie",
-      image:
-        "https://readdy.ai/api/search-image?query=premium%20ultrabook%20laptop%20on%20white%20background%2C%20sleek%20aluminum%20design%2C%20modern%20technology%20product%20photography&width=400&height=400&seq=laptop1&orientation=squarish",
-      rating: 4.8,
-      reviews: 210,
-    },
-    {
-      id: 10,
-      name: "Parfum Haut de Gamme",
-      price: 129990,
-      originalPrice: 159.99,
-      category: "Mode",
-      image:
-        "https://readdy.ai/api/search-image?query=luxury%20perfume%20bottle%20on%20white%20background%2C%20premium%20fragrance%20product%20photography&width=400&height=400&seq=perfume1&orientation=squarish",
-      rating: 4.6,
-      reviews: 98,
-    },
-    {
-      id: 11,
-      name: "Tablette Graphique Pro",
-      price: 349990,
-      originalPrice: 399.99,
-      category: "Technologie",
-      image:
-        "https://readdy.ai/api/search-image?query=professional%20graphics%20tablet%20on%20white%20background%2C%20digital%20artist%20equipment%2C%20premium%20product%20photography&width=400&height=400&seq=tablet1&orientation=squarish",
-      rating: 4.7,
-      reviews: 134,
-    },
-    {
-      id: 12,
-      name: "Chaise de Bureau Ergonomique",
-      price: 259990,
-      originalPrice: 299.99,
-      category: "Maison",
-      image:
-        "https://readdy.ai/api/search-image?query=premium%20ergonomic%20office%20chair%20on%20white%20background%2C%20modern%20home%20office%20furniture%20product%20photography&width=400&height=400&seq=chair1&orientation=squarish",
-      rating: 4.5,
-      reviews: 76,
-    },
-  ];
+  const [brandFilter, setBrandFilter] = useState<string>("Toutes");
+  const [colorFilter, setColorFilter] = useState<string>("Toutes");
+  const [sizeFilter, setSizeFilter] = useState<string>("Toutes");
 
   const filteredProducts = useMemo(() => {
     let list = products;
@@ -176,8 +86,30 @@ export default function Products() {
           .includes(searchQuery)
       );
     }
+    if (brandFilter !== "Toutes") {
+      list = list.filter((product) => product.brand === brandFilter);
+    }
+    if (colorFilter !== "Toutes") {
+      list = list.filter((product) => (product.colors || []).includes(colorFilter));
+    }
+    if (sizeFilter !== "Toutes") {
+      list = list.filter((product) => (product.sizes || []).includes(sizeFilter));
+    }
+    switch (sortBy) {
+      case "Prix croissant":
+        list = [...list].sort((a, b) => a.price - b.price);
+        break;
+      case "Prix décroissant":
+        list = [...list].sort((a, b) => b.price - a.price);
+        break;
+      case "Nouveautés":
+        list = [...list].sort((a, b) => b.id - a.id);
+        break;
+      default:
+        break;
+    }
     return list;
-  }, [products, selectedCategory, searchQuery]);
+  }, [products, selectedCategory, searchQuery, sortBy, brandFilter, colorFilter, sizeFilter]);
 
   const addToCart = (product: {
     id: number;
@@ -191,16 +123,16 @@ export default function Products() {
     setTimeout(() => setShowNotification(false), 3000);
   };
 
-  const toggleLike = (productId: number) => {
-    setLikedProductIds((prev) =>
-      prev.includes(productId)
-        ? prev.filter((id) => id !== productId)
-        : [...prev, productId]
-    );
+  const toggleLike = (product: { id: number; name: string; price: number; image: string; }) => {
+    if (hasWish(product.id)) {
+      removeWish(product.id);
+    } else {
+      addWish({ id: product.id, name: product.name, price: product.price, image: product.image });
+    }
     // Trigger a short burst animation
-    setLikeBurstIds((prev) => [...prev, productId]);
+    setLikeBurstIds((prev) => [...prev, product.id]);
     setTimeout(() => {
-      setLikeBurstIds((prev) => prev.filter((id) => id !== productId));
+      setLikeBurstIds((prev) => prev.filter((id) => id !== product.id));
     }, 300);
   };
 
@@ -242,15 +174,8 @@ export default function Products() {
     return () => observer.disconnect();
   }, [filteredProducts]);
 
-  // Persisted state for likes and views
+  // Persisted state for views
   useEffect(() => {
-    try {
-      const rawLikes = localStorage.getItem("likedProductIds");
-      if (rawLikes) {
-        const parsed = JSON.parse(rawLikes);
-        if (Array.isArray(parsed)) setLikedProductIds(parsed as number[]);
-      }
-    } catch {}
     try {
       const rawViews = localStorage.getItem("productViews");
       if (rawViews) {
@@ -260,12 +185,6 @@ export default function Products() {
       }
     } catch {}
   }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("likedProductIds", JSON.stringify(likedProductIds));
-    } catch {}
-  }, [likedProductIds]);
 
   useEffect(() => {
     try {
@@ -325,16 +244,49 @@ export default function Products() {
               ))}
             </div>
 
-            {/* Sort */}
-            <div className="flex items-center gap-4">
-              <span className="text-gray-600">Trier par:</span>
-              <div className="relative">
-                <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer whitespace-nowrap">
-                  {sortBy}
-                  <div className="w-4 h-4 flex items-center justify-center">
-                    <i className="ri-arrow-down-s-line"></i>
-                  </div>
-                </button>
+            {/* Additional Filters + Sort */}
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-600">Marque:</span>
+                <select value={brandFilter} onChange={(e) => setBrandFilter(e.target.value)} aria-label="Filtrer par marque" className="px-3 py-2 bg-white border border-gray-300 rounded-lg">
+                  <option value="Toutes">Toutes</option>
+                  {allBrands.map((b) => (
+                    <option key={b} value={b}>{b}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-600">Couleur:</span>
+                <select value={colorFilter} onChange={(e) => setColorFilter(e.target.value)} aria-label="Filtrer par couleur" className="px-3 py-2 bg-white border border-gray-300 rounded-lg">
+                  <option value="Toutes">Toutes</option>
+                  {allColors.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-600">Taille:</span>
+                <select value={sizeFilter} onChange={(e) => setSizeFilter(e.target.value)} aria-label="Filtrer par taille" className="px-3 py-2 bg-white border border-gray-300 rounded-lg">
+                  <option value="Toutes">Toutes</option>
+                  {allSizes.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-2 ml-auto">
+                <span className="text-gray-600">Trier par:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  aria-label="Trier par"
+                  className="px-3 py-2 bg-white border border-gray-300 rounded-lg"
+                >
+                  {sortOptions.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
@@ -351,6 +303,12 @@ export default function Products() {
                 className="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-2xl hover:shadow-green-500/10 transition-shadow cursor-pointer group relative overflow-hidden"
                 data-product-card="true"
                 data-product-id={product.id}
+                onClick={() => {
+                  flushSync(() => setNavigatingId(product.id));
+                  setTimeout(() => {
+                    router.push(`/product?id=${product.id}`);
+                  }, 300);
+                }}
               >
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-green-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                 {/* Like button */}
@@ -359,24 +317,17 @@ export default function Products() {
                   aria-label="Liker le produit"
                   onClick={(e) => {
                     e.stopPropagation();
-                    toggleLike(product.id);
+                    toggleLike(product);
                   }}
                   className={`absolute top-4 right-4 w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm hover:shadow transition-transform z-10 ${
                     likeBurstIds.includes(product.id)
                       ? "scale-110"
                       : "scale-100"
                   }`}
-                  aria-pressed={likedProductIds.includes(product.id)}
                   title="J'aime"
                 >
                   <i
-                    className={`ri-heart-${
-                      likedProductIds.includes(product.id) ? "fill" : "line"
-                    } text-2xl ${
-                      likedProductIds.includes(product.id)
-                        ? "text-green-500"
-                        : "text-gray-600 hover:text-green-500"
-                    }`}
+                    className={`ri-heart-${hasWish(product.id) ? "fill" : "line"} text-2xl ${hasWish(product.id) ? "text-green-500" : "text-gray-600 hover:text-green-500"}`}
                   ></i>
                   {likeBurstIds.includes(product.id) && (
                     <span className="pointer-events-none absolute inline-flex h-10 w-10 rounded-full bg-green-400/20 animate-ping"></span>
@@ -402,9 +353,18 @@ export default function Products() {
                   />
                 </div>
 
+                {navigatingId === product.id && (
+                  <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-20">
+                    <div className="w-10 h-10 rounded-full border-4 border-green-500 border-t-transparent animate-spin"></div>
+                  </div>
+                )}
+
                 <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
                   {product.name}
                 </h3>
+                {product.brand && (
+                  <div className="text-sm text-gray-600 mb-1">{product.brand}</div>
+                )}
 
                 <div className="flex items-center mb-2">
                   <div className="flex items-center">
@@ -440,20 +400,34 @@ export default function Products() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
-                  onClick={() =>
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const colorNeeded = (product.colors && product.colors.length > 0);
+                    const sizeNeeded = (product.sizes && product.sizes.length > 0);
+                    if (colorNeeded || sizeNeeded) {
+                      router.push(`/product?id=${product.id}`);
+                      return;
+                    }
                     addToCart({
                       id: product.id,
                       name: product.name,
                       price: product.price,
                       image: product.image,
-                    })
-                  }
+                    });
+                  }}
                     className="w-full bg-white text-gray-900 border border-gray-300 py-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer text-sm sm:text-base px-3 truncate"
                   >
                     Ajouter au panier
                   </button>
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const colorNeeded = (product.colors && product.colors.length > 0);
+                      const sizeNeeded = (product.sizes && product.sizes.length > 0);
+                      if (colorNeeded || sizeNeeded) {
+                        router.push(`/product?id=${product.id}`);
+                        return;
+                      }
                       try {
                         const payload = {
                           id: product.id,

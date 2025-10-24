@@ -92,7 +92,7 @@ export default function PaymentSuccessPage() {
                       <div className="flex justify-between">
                         <span className="text-gray-600">Montant:</span>
                         <span className="font-semibold">
-                          {PaymentService.formatAmount(paymentStatus.amount)}
+                          {Number(paymentStatus.amount).toLocaleString()} F CFA
                         </span>
                       </div>
                     )}

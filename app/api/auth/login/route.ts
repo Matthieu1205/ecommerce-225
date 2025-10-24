@@ -10,6 +10,7 @@ const users = [
     password: 'demo123', // En production, utilisez des mots de passe hashés
     name: 'Utilisateur Demo',
     phone: '+225 07 12 34 56 78',
+    role: 'user',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -19,6 +20,7 @@ const users = [
     password: 'admin123',
     name: 'Administrateur',
     phone: '+225 07 98 76 54 32',
+    role: 'admin',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -54,6 +56,7 @@ export async function POST(request: NextRequest) {
       email: user.email,
       name: user.name,
       phone: user.phone,
+      role: user.role as any,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

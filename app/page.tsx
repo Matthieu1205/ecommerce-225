@@ -185,10 +185,10 @@ export default function Home() {
                 </h3>
                 <div className="flex items-center space-x-3 mb-6">
                   <span className="text-3xl font-bold text-green-400">
-                    {product.price}€
+                    {Number(product.price).toLocaleString()} F CFA
                   </span>
                   <span className="text-lg text-gray-500 line-through">
-                    {product.originalPrice}€
+                    {Number(product.originalPrice).toLocaleString()} F CFA
                   </span>
                 </div>
 

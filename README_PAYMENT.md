@@ -215,3 +215,6 @@ Pour mettre à jour l'intégration :
 
 **Note** : Cette intégration utilise des réponses simulées en mode développement. Pour la production, décommentez et configurez les vrais appels API dans les fichiers de route.
 
+
+
+
